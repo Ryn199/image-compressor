@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Ryn Image Compressor – Kompres Gambar Online</title>
   <link rel="icon" href="logo.jpeg" />
   <meta name="description" content="Kompres gambar JPG, PNG, WebP langsung di browser. Cepat, privat, tanpa upload ke server." />
@@ -163,9 +163,32 @@
     .tips li::before { content: "–"; color: #fff; flex-shrink: 0; }
     .tips strong { color: #ddd; font-weight: 600; }
 
+    html { -webkit-text-size-adjust: 100%; }
+    body { overflow-x: hidden; width: 100%; }
+    .card, .tips { min-width: 0; }
+    .result-item { min-width: 0; }
+    .dl-btn { flex-shrink: 0; }
+
     @media (max-width: 480px) {
-      h1 { font-size: 26px; }
-      .settings { flex-direction: column; }
+      body { padding: 28px 12px 40px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+      header { margin-bottom: 24px; }
+      h1 { font-size: 26px; letter-spacing: -0.8px; }
+      .subtitle { font-size: 13px; padding: 0 8px; }
+      .logo img { width: 60px; height: 60px; }
+      .card { padding: 18px 16px; }
+      .tips { padding: 16px; }
+      #dropzone { padding: 32px 14px; }
+      .settings { flex-direction: column; gap: 14px; margin-top: 18px; }
+      .setting-group { min-width: 0; width: 100%; flex: none !important; }
+      select { font-size: 16px; padding: 11px 12px; }
+      .btn { padding: 15px; font-size: 15px; }
+      .result-item { flex-wrap: wrap; gap: 10px 12px; }
+      .result-thumb { width: 44px; height: 44px; }
+      .result-info { flex: 1 1 calc(100% - 60px); }
+      .dl-btn { width: 100%; text-align: center; padding: 10px; }
+      #dlGroup .btn { min-width: 0; flex: 1 1 100%; }
+      input[type=range] { height: 6px; }
+      input[type=range]::-webkit-slider-thumb { width: 24px; height: 24px; }
     }
   </style>
 </head>
@@ -545,4 +568,5 @@
 </script>
 </body>
 </html>
+
 
