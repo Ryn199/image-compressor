@@ -1,0 +1,7 @@
+services:
+  image-compressor:
+    build: .
+    container_name: image-compressor
+    restart: unless-stopped
+    ports:
+      - "8080:80"

@@ -1,0 +1,548 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ryn Image Compressor – Kompres Gambar Online</title>
+  <link rel="icon" href="logo.jpeg" />
+  <meta name="description" content="Kompres gambar JPG, PNG, WebP langsung di browser. Cepat, privat, tanpa upload ke server." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #000;
+      --card:    #0a0a0a;
+      --card2:   #141414;
+      --border:  #262626;
+      --border-hi: #fff;
+      --text:    #fff;
+      --muted:   #8a8a8a;
+      --radius:  12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 60px;
+    }
+
+    header { text-align: center; margin-bottom: 36px; }
+    .logo { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .logo img { width: 72px; height: 72px; object-fit: contain; filter: invert(1); mix-blend-mode: screen; }
+    .logo span { font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+    h1 { font-size: 36px; font-weight: 800; letter-spacing: -1.2px; line-height: 1.15; }
+    .subtitle { margin-top: 10px; color: var(--muted); font-size: 14px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      width: 100%; max-width: 640px;
+      margin-bottom: 20px;
+    }
+
+    #dropzone {
+      border: 1px dashed #444;
+      border-radius: 10px;
+      padding: 44px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    #dropzone:hover, #dropzone.dragover { border-color: var(--border-hi); background: var(--card2); }
+    #dropzone .dz-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+    #dropzone .dz-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    #dropzone .dz-sub { font-size: 13px; color: var(--muted); word-break: break-word; }
+    #dropzone .dz-btn {
+      margin-top: 18px; display: inline-block;
+      background: #fff; color: #000;
+      font-weight: 600; font-size: 13px;
+      padding: 9px 22px; border-radius: 8px;
+      transition: opacity .2s;
+    }
+    #dropzone .dz-btn:hover { opacity: .85; }
+    #fileInput { display: none; }
+
+    .settings { display: flex; gap: 16px; margin-top: 22px; flex-wrap: wrap; }
+    .setting-group { flex: 1; min-width: 160px; }
+    label {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px;
+      display: block; margin-bottom: 6px;
+    }
+    select {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit; font-size: 14px;
+      padding: 9px 12px;
+      outline: none; cursor: pointer;
+      -webkit-appearance: none;
+    }
+    select:focus { border-color: #fff; }
+    input[type=range] {
+      width: 100%; height: 4px;
+      background: linear-gradient(to right, #fff var(--pct, 80%), #2a2a2a var(--pct, 80%));
+      border: none; border-radius: 99px;
+      cursor: pointer; -webkit-appearance: none; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff; cursor: pointer;
+    }
+    .range-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    .btn {
+      width: 100%; padding: 13px;
+      border-radius: 10px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary { background: #fff; color: #000; border: 1px solid #fff; }
+    .btn-primary:hover:not(:disabled) { background: #e5e5e5; }
+    .btn-primary:disabled { opacity: .3; cursor: not-allowed; }
+    .btn-outline { background: transparent; color: #fff; border: 1px solid #444; }
+    .btn-outline:hover { border-color: #fff; }
+    #compressBtn { margin-top: 22px; }
+
+    #progressWrap { display: none; margin-top: 16px; }
+    .progress-bar-track { background: #222; border-radius: 99px; height: 4px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #fff; width: 0%; transition: width .3s ease; }
+    .progress-text { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+    #results { display: none; }
+    .results-header { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 15px; margin-bottom: 16px; }
+    .badge { padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid #fff; color: #fff; }
+    .badge.warn { border-style: dashed; color: var(--muted); border-color: var(--muted); }
+    .result-item {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 10px;
+      transition: border-color .2s;
+    }
+    .result-item:hover { border-color: #555; }
+    .result-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #000; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-sizes { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .result-sizes .new { color: #fff; font-weight: 600; }
+    .dl-btn {
+      background: transparent; border: 1px solid #444; color: #fff;
+      font-size: 12px; font-weight: 600;
+      padding: 7px 14px; border-radius: 8px;
+      text-decoration: none; white-space: nowrap; transition: all .2s;
+    }
+    .dl-btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+    #dlGroup { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    #dlGroup .btn { flex: 1; min-width: 180px; }
+
+    .tips {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      width: 100%; max-width: 640px;
+    }
+    .tips h3 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+    .tips ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .tips li { font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
+    .tips li::before { content: "–"; color: #fff; flex-shrink: 0; }
+    .tips strong { color: #ddd; font-weight: 600; }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 26px; }
+      .settings { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="logo.jpeg" alt="Ryn logo" /><span>Ryn Image Compressor</span></div>
+  <h1>Kompres Gambar<br>Tanpa Pecah</h1>
+  <p class="subtitle">Perkecil ukuran JPG, PNG, dan WebP langsung di browser — tanpa upload ke server</p>
+</header>
+
+<div class="card">
+  <div id="dropzone">
+    <span class="dz-icon">↑</span>
+    <div class="dz-title">Drag &amp; Drop gambar di sini</div>
+    <div class="dz-sub">Format: JPG, PNG, WebP — bisa lebih dari 1 gambar</div>
+    <div class="dz-btn" onclick="document.getElementById('fileInput').click()">Pilih Gambar</div>
+    <input type="file" id="fileInput" accept="image/*" multiple />
+  </div>
+
+  <div class="settings">
+    <div class="setting-group">
+      <label for="targetSize">Batas Ukuran</label>
+      <select id="targetSize">
+        <option value="5242880">5 MB</option>
+        <option value="2097152" selected>2 MB</option>
+        <option value="1048576">1 MB</option>
+        <option value="524288">500 KB</option>
+        <option value="204800">200 KB</option>
+        <option value="102400">100 KB</option>
+      </select>
+    </div>
+    <div class="setting-group">
+      <label for="maxWidth">Resolusi Maks</label>
+      <select id="maxWidth">
+        <option value="9999">Asli (tidak diubah)</option>
+        <option value="2000" selected>2000 px (disarankan)</option>
+        <option value="1500">1500 px</option>
+        <option value="1200">1200 px</option>
+        <option value="1000">1000 px</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings" style="margin-top:12px">
+    <div class="setting-group" style="flex:2">
+      <label for="qualityRange">Kualitas Awal: <span id="qualityVal">88</span>%</label>
+      <input type="range" id="qualityRange" min="50" max="99" value="88" />
+      <div class="range-label">Otomatis turun jika masih melebihi batas ukuran</div>
+    </div>
+  </div>
+
+  <div id="progressWrap">
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">Memproses…</div>
+  </div>
+
+  <button id="compressBtn" class="btn btn-primary" disabled>Kompres Gambar</button>
+</div>
+
+<div class="card" id="results">
+  <div class="results-header">
+    <span>Hasil Kompresi</span>
+    <span id="resultBadge" class="badge">Semua OK</span>
+  </div>
+  <div id="resultList"></div>
+  <div id="dlGroup">
+    <button id="dlZipBtn" class="btn btn-primary">Download ZIP</button>
+    <button id="dlAllBtn" class="btn btn-outline">Download Satu per Satu</button>
+  </div>
+</div>
+
+<div class="tips">
+  <h3>Tips</h3>
+  <ul>
+    <li>Gunakan format <strong>JPG</strong> untuk foto — ukurannya lebih kecil dari PNG.</li>
+    <li>Gambar transparan tetap <strong>PNG</strong> selama masih muat dalam batas ukuran.</li>
+    <li>Kualitas diturunkan perlahan sampai batas ukuran tercapai, sehingga gambar tidak pecah.</li>
+    <li>Semua proses berjalan di browser — gambar Anda <strong>tidak diunggah</strong> ke mana pun.</li>
+    <li>Untuk banyak gambar, pilih <strong>Download ZIP</strong> agar lebih praktis.</li>
+  </ul>
+</div>
+
+<script>
+  const dropzone     = document.getElementById('dropzone');
+  const fileInput    = document.getElementById('fileInput');
+  const compressBtn  = document.getElementById('compressBtn');
+  const qualityRange = document.getElementById('qualityRange');
+  const qualityVal   = document.getElementById('qualityVal');
+  const targetSizeSel= document.getElementById('targetSize');
+  const maxWidthSel  = document.getElementById('maxWidth');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const resultsCard  = document.getElementById('results');
+  const resultList   = document.getElementById('resultList');
+  const resultBadge  = document.getElementById('resultBadge');
+  const dlAllBtn     = document.getElementById('dlAllBtn');
+  const dlZipBtn     = document.getElementById('dlZipBtn');
+
+  let selectedFiles = [];
+  let compressedBlobs = [];
+
+  function updateSlider() {
+    const v = qualityRange.value;
+    qualityVal.textContent = v;
+    qualityRange.style.setProperty('--pct', ((v - 50) / 49 * 100).toFixed(1) + '%');
+  }
+  qualityRange.addEventListener('input', updateSlider);
+  updateSlider();
+
+  ['dragenter','dragover'].forEach(ev =>
+    dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev =>
+    dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
+  dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  function handleFiles(files) {
+    const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!imgs.length) return;
+    selectedFiles = imgs;
+    compressBtn.disabled = false;
+    dropzone.querySelector('.dz-title').textContent = imgs.length + ' gambar dipilih';
+    const names = imgs.map(f => f.name).join(' · ');
+    dropzone.querySelector('.dz-sub').textContent = names.length > 80 ? names.substring(0,80) + '…' : names;
+  }
+
+  compressBtn.addEventListener('click', async () => {
+    if (!selectedFiles.length) return;
+    compressBtn.disabled = true;
+    resultsCard.style.display = 'none';
+    resultList.innerHTML = '';
+    compressedBlobs = [];
+    progressWrap.style.display = 'block';
+
+    const targetBytes = parseInt(targetSizeSel.value);
+    const maxW = parseInt(maxWidthSel.value);
+    const initQ = parseInt(qualityRange.value) / 100;
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      progressText.textContent = 'Memproses ' + (i+1) + ' / ' + selectedFiles.length + ': ' + selectedFiles[i].name;
+      progressFill.style.width = (i / selectedFiles.length * 100) + '%';
+      try {
+        compressedBlobs.push(await compressImage(selectedFiles[i], targetBytes, maxW, initQ));
+      } catch (e) {
+        console.error('Gagal memproses', selectedFiles[i].name, e);
+      }
+    }
+
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Selesai!';
+    setTimeout(() => { progressWrap.style.display = 'none'; }, 800);
+
+    renderResults();
+    compressBtn.disabled = false;
+  });
+
+  function toBlob(canvas, type, quality) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  }
+
+  async function compressImage(file, targetBytes, maxW, initQ) {
+    const dataUrl = await new Promise(res => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = dataUrl;
+    });
+
+    let W = img.naturalWidth, H = img.naturalHeight;
+    if (W > maxW) { H = Math.round(H * maxW / W); W = maxW; }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, W, H);
+
+    let hasAlpha = false;
+    try {
+      const px = ctx.getImageData(0, 0, Math.min(W,100), Math.min(H,100)).data;
+      for (let i = 3; i < px.length; i += 4) { if (px[i] < 255) { hasAlpha = true; break; } }
+    } catch(e) {}
+
+    const type = hasAlpha ? 'image/png' : 'image/jpeg';
+
+    let blob = await toBlob(canvas, type, initQ);
+    if (blob && blob.size <= targetBytes) return finish(blob, file, type);
+
+    let lo = 0.30, hi = initQ, best = null;
+    for (let i = 0; i < 12; i++) {
+      const mid = (lo + hi) / 2;
+      blob = await toBlob(canvas, type, mid);
+      if (blob && blob.size <= targetBytes) { best = blob; lo = mid; }
+      else { hi = mid; }
+      if (hi - lo < 0.01) break;
+    }
+    if (best) return finish(best, file, type);
+
+    if (hasAlpha) {
+      lo = 0.30; hi = initQ;
+      for (let i = 0; i < 12; i++) {
+        const mid = (lo + hi) / 2;
+        blob = await toBlob(canvas, 'image/jpeg', mid);
+        if (blob && blob.size <= targetBytes) { best = blob; lo = mid; }
+        else { hi = mid; }
+        if (hi - lo < 0.01) break;
+      }
+      if (best) return finish(best, file, 'image/jpeg');
+    }
+
+    let scale = 0.85;
+    while (scale >= 0.25) {
+      const sw = Math.max(200, Math.round(W * scale));
+      const sh = Math.round(H * scale);
+      const c2 = document.createElement('canvas');
+      c2.width = sw; c2.height = sh;
+      c2.getContext('2d').drawImage(canvas, 0, 0, sw, sh);
+      blob = await toBlob(c2, 'image/jpeg', 0.78);
+      if (blob && blob.size <= targetBytes) return finish(blob, file, 'image/jpeg');
+      scale -= 0.10;
+    }
+
+    blob = await toBlob(canvas, 'image/jpeg', 0.40);
+    return finish(blob, file, 'image/jpeg');
+  }
+
+  function finish(blob, file, type) {
+    const ext = type === 'image/png' ? '.png' : '.jpg';
+    const name = file.name.replace(/\.[^.]+$/, '') + '_compressed' + ext;
+    return { blob, name, originalSize: file.size, originalName: file.name };
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderResults() {
+    resultList.innerHTML = '';
+    const target = parseInt(targetSizeSel.value);
+    compressedBlobs.forEach(res => {
+      const url = URL.createObjectURL(res.blob);
+      const ok = res.blob.size <= target;
+      const savedPct = Math.round((1 - res.blob.size / res.originalSize) * 100);
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML =
+        '<img class="result-thumb" src="' + url + '" alt="preview" />' +
+        '<div class="result-info">' +
+          '<div class="result-name">' + escapeHtml(res.originalName) + '</div>' +
+          '<div class="result-sizes">' +
+            '<span>' + fmtSize(res.originalSize) + '</span><span>→</span>' +
+            '<span class="new">' + fmtSize(res.blob.size) + '</span>' +
+            (savedPct > 0 ? '<span>−' + savedPct + '%</span>' : '') +
+            (ok ? '' : '<span>(melebihi batas)</span>') +
+          '</div>' +
+        '</div>' +
+        '<a class="dl-btn" href="' + url + '" download="' + escapeHtml(res.name) + '">Unduh</a>';
+      resultList.appendChild(item);
+    });
+
+    const allOk = compressedBlobs.every(r => r.blob.size <= target);
+    resultBadge.className = 'badge' + (allOk ? '' : ' warn');
+    resultBadge.textContent = allOk ? 'Semua OK' : 'Cek ukuran';
+    // Pilihan download massal hanya untuk lebih dari 1 gambar
+    document.getElementById('dlGroup').style.display = compressedBlobs.length > 1 ? 'flex' : 'none';
+    resultsCard.style.display = 'block';
+  }
+
+  function triggerDownload(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }
+
+  // Multiple file
+  dlAllBtn.addEventListener('click', () => {
+    compressedBlobs.forEach((res, i) => setTimeout(() => triggerDownload(res.blob, res.name), i * 350));
+  });
+
+  // ZIP (tanpa library, mode "store" — gambar sudah terkompresi)
+  const crcTable = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(buf) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  async function buildZip(entries) {
+    const enc = new TextEncoder();
+    const parts = [], central = [];
+    let offset = 0;
+    const now = new Date();
+    const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+
+    for (const e of entries) {
+      const data = new Uint8Array(await e.blob.arrayBuffer());
+      const name = enc.encode(e.name);
+      const crc = crc32(data);
+
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+      lh.setUint16(6, 0x0800, true);     lh.setUint16(8, 0, true);
+      lh.setUint16(10, dosTime, true);   lh.setUint16(12, dosDate, true);
+      lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+      lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(lh.buffer, name, data);
+
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+      ch.setUint16(8, 0x0800, true);     ch.setUint16(10, 0, true);
+      ch.setUint16(12, dosTime, true);   ch.setUint16(14, dosDate, true);
+      ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+      ch.setUint16(28, name.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(ch.buffer, name);
+
+      offset += 30 + name.length + data.length;
+    }
+
+    let cdSize = 0;
+    central.forEach(b => cdSize += b.byteLength);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);
+    end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+
+    return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+  }
+
+  dlZipBtn.addEventListener('click', async () => {
+    const label = dlZipBtn.textContent;
+    dlZipBtn.disabled = true; dlZipBtn.textContent = 'Membuat ZIP…';
+    try {
+      // pastikan nama unik di dalam ZIP
+      const used = {};
+      const entries = compressedBlobs.map(r => {
+        let name = r.name;
+        if (used[name]) {
+          const dot = name.lastIndexOf('.');
+          name = name.slice(0, dot) + '_' + used[name] + name.slice(dot);
+        }
+        used[r.name] = (used[r.name] || 0) + 1;
+        return { blob: r.blob, name };
+      });
+      triggerDownload(await buildZip(entries), 'compressed-images.zip');
+    } finally {
+      dlZipBtn.disabled = false; dlZipBtn.textContent = label;
+    }
+  });
+
+  function fmtSize(bytes) {
+    if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+    if (bytes >= 1024)    return (bytes / 1024).toFixed(1) + ' KB';
+    return bytes + ' B';
+  }
+</script>
+</body>
+</html>
+
